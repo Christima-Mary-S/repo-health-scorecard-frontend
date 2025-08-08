@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Debug</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            600: '#2563eb'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div class="min-h-screen p-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-4xl font-bold mb-8">Theme Debug Test</h1>
+            
+            <div class="mb-8">
+                <button id="toggleTheme" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                    Toggle Theme
+                </button>
+                <span id="currentTheme" class="ml-4 font-mono"></span>
+            </div>
+            
+            <div class="grid gap-6">
+                <div class="p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-2">Card Component</h2>
+                    <p class="text-gray-600 dark:text-slate-400">This text should change color in dark mode</p>
+                </div>
+                
+                <div class="p-6 bg-gray-50 dark:bg-slate-900">
+                    <h2 class="text-xl font-semibold mb-2 text-primary-600">Primary Color Text</h2>
+                    <p class="text-gray-600 dark:text-slate-400">Background should change in dark mode</p>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button class="px-4 py-2 bg-transparent hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded">
+                        Ghost Button
+                    </button>
+                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                        Primary Button
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const html = document.documentElement;
+        const toggleButton = document.getElementById('toggleTheme');
+        const currentThemeSpan = document.getElementById('currentTheme');
+        
+        function updateThemeDisplay() {
+            const isDark = html.classList.contains('dark');
+            currentThemeSpan.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            toggleButton.textContent = isDark ? 'Switch to Light' : 'Switch to Dark';
+        }
+        
+        // Initial setup
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+        
+        if (shouldUseDark) {
+            html.classList.add('dark');
+        }
+        
+        updateThemeDisplay();
+        
+        toggleButton.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            updateThemeDisplay();
+        });
+    </script>
+</body>
+</html>
