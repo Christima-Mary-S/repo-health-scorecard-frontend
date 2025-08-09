@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ApiService } from "@/lib/api";
 import { DashboardRepo, RepoData } from "@/types/repo";
 
@@ -9,7 +9,7 @@ export const useRepoData = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRepo = async (owner: string, repo: string) => {
+  const fetchRepo = useCallback(async (owner: string, repo: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -23,7 +23,7 @@ export const useRepoData = () => {
     }
 
     setIsLoading(false);
-  };
+  }, []);
 
   return { data, isLoading, error, fetchRepo };
 };
