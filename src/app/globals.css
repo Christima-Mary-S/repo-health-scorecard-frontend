@@ -1,48 +1,7 @@
 @import "tailwindcss";
 
-/* CSS Custom Properties approach for reliable dark mode */
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-  --text-primary: #1a202c;
-  --text-secondary: #4a5568;
-  --text-muted: #718096;
-  --border-color: #e2e8f0;
-}
-
-html.dark {
-  --bg-primary: #1a202c;
-  --bg-secondary: #2d3748;
-  --bg-tertiary: #4a5568;
-  --text-primary: #f7fafc;
-  --text-secondary: #e2e8f0;
-  --text-muted: #cbd5e1;
-  --border-color: #4a5568;
-}
-
-/* Override Tailwind dark mode classes with custom properties */
-.dark .bg-slate-800,
-.dark .bg-gray-900 {
-  background-color: var(--bg-primary) !important;
-}
-
-.dark .bg-slate-900 {
-  background-color: #0f172a !important;
-}
-
-.dark .text-slate-200,
-.dark .text-gray-100 {
-  color: var(--text-primary) !important;
-}
-
-.dark .text-slate-400 {
-  color: var(--text-muted) !important;
-}
-
-.dark .border-slate-700 {
-  border-color: var(--border-color) !important;
-}
+/* Tailwind v4 dark mode configuration */
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @layer base {
   * {

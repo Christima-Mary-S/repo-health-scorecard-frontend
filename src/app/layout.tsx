@@ -38,8 +38,11 @@ export default function RootLayout({
                   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                   const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
                   
+                  // Tailwind v4: Use data-theme attribute
                   if (shouldUseDark) {
-                    document.documentElement.classList.add('dark');
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                  } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
                   }
                 } catch (e) {}
               })();

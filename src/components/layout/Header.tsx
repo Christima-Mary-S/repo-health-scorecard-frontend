@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   onAuthClick,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode, toggleTheme, isHydrated } = useTheme();
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -71,7 +71,9 @@ export const Header: React.FC<HeaderProps> = ({
             className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-slate-700"
             aria-label="Toggle theme"
           >
-            {isDarkMode ? (
+            {!isHydrated ? (
+              <Moon className="w-5 h-5" />
+            ) : isDarkMode ? (
               <Sun className="w-5 h-5" />
             ) : (
               <Moon className="w-5 h-5" />
