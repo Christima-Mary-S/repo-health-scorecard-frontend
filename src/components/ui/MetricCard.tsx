@@ -12,6 +12,8 @@ interface MetricCardProps {
   maxValue?: number;
   description: string;
   className?: string;
+  unit?: string;
+  hideProgress?: boolean;
 }
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -21,10 +23,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   maxValue = 10,
   description,
   className,
+  unit,
+  hideProgress = false,
 }) => {
-  const numericValue = typeof value === "string" ? parseFloat(value) : value;
-  const percentage = (numericValue / maxValue) * 100;
-  const color = getScoreColor(numericValue);
+  const isStringValue = typeof value === "string" && (value === "Yes" || value === "No" || value === "N/A" || value.includes("days"));
+  const numericValue = typeof value === "string" && !isStringValue ? parseFloat(value) : typeof value === "number" ? value : 0;
+  const percentage = !isStringValue ? (numericValue / maxValue) * 100 : 0;
+  const color = !isStringValue ? getScoreColor(numericValue) : value === "Yes" ? "#22c55e" : value === "No" ? "#ef4444" : "#6b7280";
 
   return (
     <Card hover className={`w-full lg:w-72 ${className}`}>
@@ -36,18 +41,27 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           <h3 className="font-semibold text-lg mb-1 truncate">{title}</h3>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl font-bold" style={{ color }}>
-              {numericValue}
+              {isStringValue ? value : numericValue}
             </span>
-            <span className="text-gray-500 dark:text-slate-400">
-              / {maxValue}
-            </span>
+            {unit && !isStringValue && (
+              <span className="text-sm text-gray-500 dark:text-slate-400">
+                {unit}
+              </span>
+            )}
+            {!isStringValue && !hideProgress && (
+              <span className="text-gray-500 dark:text-slate-400">
+                / {maxValue}
+              </span>
+            )}
           </div>
-          <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-slate-700 mb-2">
-            <div
-              className="h-full rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${percentage}%`, backgroundColor: color }}
-            />
-          </div>
+          {!hideProgress && !isStringValue && (
+            <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-slate-700 mb-2">
+              <div
+                className="h-full rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${percentage}%`, backgroundColor: color }}
+              />
+            </div>
+          )}
           <p className="text-sm text-gray-500 dark:text-slate-400">
             {description}
           </p>

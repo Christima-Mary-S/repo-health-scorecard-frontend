@@ -16,6 +16,7 @@ export interface RepoData {
   owner: string;
   repo: string;
   metrics: RepoMetrics;
+  errors?: Record<string, any>;
   // Additional fields that might come from GitHub API
   name?: string;
   full_name?: string;

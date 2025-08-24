@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from "@/providers/ThemeProvider";
+import { Providers } from "@/providers/Providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -18,7 +18,11 @@ export const metadata: Metadata = {
     "open source",
   ],
   authors: [{ name: "RepoHealth Team" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -51,9 +55,9 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ThemeProvider>
+        <Providers>
           <div id="root" key="app-root">{children}</div>
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

@@ -1,0 +1,132 @@
+@startuml Repository Health Scorecard - Data Flow
+
+!theme plain
+skinparam backgroundColor white
+
+title Data Flow: Repository Health Analysis Process
+
+actor "User" as User
+participant "React Dashboard" as Frontend
+participant "Express API" as Backend
+participant "GitHub Service" as GitHub
+participant "Metrics Calculator" as Calculator
+participant "Score Aggregator" as Aggregator
+participant "GitHub API" as GitHubAPI
+participant "Analysis Engine" as Analysis
+
+== Individual Repository Analysis ==
+
+User -> Frontend: Enter owner/repo
+Frontend -> Backend: GET /api/score/owner/repo
+activate Backend
+
+Backend -> GitHub: Parallel data fetching
+activate GitHub
+
+par Commit Data
+  GitHub -> GitHubAPI: getCommitActivity()
+  GitHubAPI --> GitHub: Weekly commit stats
+else Issue Data  
+  GitHub -> GitHubAPI: listRecentClosedIssues()
+  GitHubAPI --> GitHub: Issue resolution times
+else PR Data
+  GitHub -> GitHubAPI: listRecentClosedPRs() 
+  GitHubAPI --> GitHub: PR review durations
+else Contributors
+  GitHub -> GitHubAPI: listContributors()
+  GitHubAPI --> GitHub: Contributor list
+else Security
+  GitHub -> GitHubAPI: getDependabotAlerts()
+  GitHubAPI --> GitHub: Vulnerability alerts
+else README
+  GitHub -> GitHubAPI: getReadme()
+  GitHubAPI --> GitHub: README content
+else Test Presence
+  GitHub -> GitHubAPI: getContents('/') 
+  GitHubAPI --> GitHub: Root directory listing
+end
+
+GitHub --> Backend: Raw metrics data
+deactivate GitHub
+
+Backend -> Calculator: Process raw data
+activate Calculator
+
+Calculator -> Calculator: computeWeeklyAverage(commits)
+Calculator -> Calculator: medianResolutionTime(issues)
+Calculator -> Calculator: medianPRDuration(prs)
+Calculator -> Calculator: estimateBusFactor(contributors)
+Calculator -> Calculator: countVulnerabilities(alerts)
+Calculator -> Calculator: countBadges(readme)
+
+Calculator --> Backend: Calculated metrics
+deactivate Calculator
+
+Backend -> Aggregator: aggregateScore(metrics)
+activate Aggregator
+
+Aggregator -> Aggregator: normalise(metric, value, contributorCount)
+note right: Adaptive thresholds based on project size
+
+Aggregator -> Aggregator: Apply research-based weights
+note right
+  vulnerabilityCount: 13%
+  issueResTime: 12% 
+  prReviewDuration: 12%
+  commitFreq: 10%
+  testFolderExists: 10%
+  developerChurn: 10%
+  busFactor: 10%
+  ossfScore: 10%
+  contributorCount: 8%
+  badgeCount: 5%
+end note
+
+Aggregator -> Aggregator: Proportional scaling for missing data
+Aggregator --> Backend: Final health score (0-100)
+deactivate Aggregator
+
+Backend --> Frontend: JSON response with scores + errors
+deactivate Backend
+
+Frontend -> Frontend: Render dashboard with:
+note right
+  - Overall health gauge
+  - Radar chart breakdown  
+  - Individual metric cards
+  - Error handling display
+end note
+
+Frontend --> User: Interactive health dashboard
+
+== Batch Analysis (Research) ==
+
+User -> Analysis: npm run analyze
+activate Analysis
+
+Analysis -> Analysis: Load 25 repository sample
+Analysis -> Backend: Batch process repositories
+note right: 3 repos per batch, 10s delays
+
+Backend --> Analysis: Health scores for all repos
+Analysis -> Analysis: Combine with GitHub metadata
+Analysis -> Analysis: Export JSON + CSV results
+Analysis --> User: Analysis files saved
+
+User -> Analysis: npm run correlate  
+Analysis -> Analysis: Load systematic analysis results
+Analysis -> Analysis: Calculate Pearson/Spearman correlations
+Analysis -> Analysis: Generate statistical report
+Analysis --> User: Correlation analysis complete
+
+deactivate Analysis
+
+== Manual Validation ==
+
+User -> Analysis: Manual review process
+Analysis -> Analysis: Select representative sample (7 repos)
+Analysis -> Analysis: Structured assessment (6 dimensions)
+Analysis -> Analysis: Compare with automated scores
+Analysis --> User: 94% correlation validation
+
+@enduml

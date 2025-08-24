@@ -1,0 +1,84 @@
+@startuml Repository Health Scorecard - System Architecture
+
+!theme plain
+skinparam backgroundColor white
+skinparam componentStyle rectangle
+
+package "Frontend Layer" {
+  [React Dashboard] as Frontend
+  [Next.js 15 App Router] as NextJS
+  [GitHub OAuth] as Auth
+  [Tailwind UI Components] as UI
+  
+  Frontend --> NextJS
+  Frontend --> Auth
+  Frontend --> UI
+}
+
+package "Backend Layer" {
+  [Express API Server] as API
+  [Repository Controller] as Controller
+  [GitHub Service] as GitHubSvc
+  [Scorecard Service] as ScorecardSvc
+  [Metrics Calculator] as Metrics
+  [Score Aggregator] as Aggregator
+  
+  API --> Controller
+  Controller --> GitHubSvc
+  Controller --> ScorecardSvc
+  Controller --> Metrics
+  Controller --> Aggregator
+}
+
+package "Analysis Layer" {
+  [Systematic Analysis] as SysAnalysis
+  [Correlation Analysis] as CorrAnalysis
+  [Manual Review] as ManualReview
+  
+  SysAnalysis --> Controller
+  CorrAnalysis --> SysAnalysis
+  ManualReview --> SysAnalysis
+}
+
+package "External Services" {
+  [GitHub API] as GitHubAPI
+  [OpenSSF Scorecard CLI] as OpenSSF
+  
+  GitHubSvc --> GitHubAPI
+  ScorecardSvc --> OpenSSF
+}
+
+package "Data Storage" {
+  [JSON Export Files] as JSONFiles
+  [CSV Statistical Data] as CSVFiles
+  [Analysis Results] as Results
+  
+  SysAnalysis --> JSONFiles
+  CorrAnalysis --> CSVFiles
+  ManualReview --> Results
+}
+
+Frontend --> API : "REST API Calls"
+Auth --> GitHubAPI : "OAuth Flow"
+
+note right of GitHubAPI
+  - Repository metadata
+  - Commits, Issues, PRs
+  - Contributors
+  - Dependabot alerts
+end note
+
+note right of OpenSSF
+  - Security scorecard
+  - Best practices assessment
+  - CLI integration
+end note
+
+note bottom of Results
+  - Systematic analysis JSON/CSV
+  - Correlation reports
+  - Manual review data
+  - Statistical exports
+end note
+
+@enduml

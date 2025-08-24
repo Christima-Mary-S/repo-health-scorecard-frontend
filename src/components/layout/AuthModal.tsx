@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Github, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -11,8 +11,6 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const router = useRouter();
-
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -33,10 +31,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleGitHubAuth = () => {
-    // In a real app, this would redirect to GitHub OAuth
-    onClose();
-    router.push("/dashboard");
+  const handleGitHubSignIn = () => {
+    signIn("github", { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -44,7 +40,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       <div className="w-full max-w-md rounded-lg shadow-xl bg-white dark:bg-slate-800 relative">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors z-10"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -57,15 +53,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
           <h2 className="text-2xl font-bold mb-2">Welcome to RepoHealth</h2>
           <p className="text-gray-600 dark:text-slate-400 mb-8">
-            Sign in with GitHub to analyze your repositories and track their
-            health over time.
+            Sign in with GitHub to analyze your repositories and track their health over time.
           </p>
 
           <Button
             className="w-full mb-4"
             size="lg"
             iconLeft={<Github className="w-5 h-5" />}
-            onClick={handleGitHubAuth}
+            onClick={handleGitHubSignIn}
           >
             Continue with GitHub
           </Button>

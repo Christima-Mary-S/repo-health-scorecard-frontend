@@ -13,6 +13,13 @@ import {
   Users,
   CheckCircle,
   Shield,
+  GitCommit,
+  Clock,
+  GitPullRequest,
+  Award,
+  TestTube,
+  Shuffle,
+  UserX,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -29,21 +36,40 @@ interface RepoAnalysisSectionProps {
 export const RepoAnalysisSection: React.FC<RepoAnalysisSectionProps> = ({
   data,
 }) => {
-  const ownerName = data.owner || data.full_name?.split("/")[0] || "Unknown";
-  const repoName = data.name || data.full_name?.split("/")[1] || "Unknown";
+  const ownerName = data.owner;
+  const repoName = data.repo;
   const stars = data.stars || data.stargazers_count || 0;
   const forks = data.forks || data.forks_count || 0;
-  const score = Math.round(data.overallScore || data.score || 0);
-  const vulnerabilities =
-    data.vulnerabilities || data.security?.vulnerabilities || 0;
+  const score = Math.round(data.metrics?.overallScore || 0);
+  const vulnerabilities = data.metrics?.vulnerabilityCount || 0;
 
-  // Normalize metrics to 0-10 scale for display
-  const metrics = {
-    activity: data.metrics?.activity || data.activityScore || 0,
-    community: data.metrics?.community || data.communityScore || 0,
-    quality: data.metrics?.quality || data.qualityScore || 0,
-    trust: data.metrics?.trust || data.trustScore || 0,
-    security: data.metrics?.security || data.securityScore || 0,
+  // Helper function to format metrics for display
+  const formatMetric = (value: number | boolean | undefined, type: 'percentage' | 'number' | 'boolean' | 'days' = 'number'): string => {
+    if (value === undefined || value === null) return 'N/A';
+    
+    if (type === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    if (type === 'days') {
+      return `${Number(value).toFixed(1)} days`;
+    }
+    if (type === 'percentage') {
+      return `${Number(value).toFixed(1)}%`;
+    }
+    return Number(value).toFixed(1);
+  };
+
+  // Calculate normalized scores for radar chart (0-10 scale)
+  const normalizedMetrics = {
+    commitFreq: Math.min((data.metrics?.commitFreq || 0) / 5, 10), // Normalize around 5 commits/month = 10/10
+    issueResTime: Math.max(10 - (data.metrics?.issueResTime || 30) / 3, 0), // Invert: faster = better
+    prReviewDuration: Math.max(10 - (data.metrics?.prReviewDuration || 20) / 2, 0), // Invert: faster = better
+    contributorCount: Math.min((data.metrics?.contributorCount || 0) / 50, 10), // Normalize around 50 contributors = 10/10
+    testFolderExists: data.metrics?.testFolderExists ? 10 : 0,
+    badgeCount: Math.min((data.metrics?.badgeCount || 0) * 2.5, 10), // 4 badges = 10/10
+    developerChurn: Math.max(10 - (data.metrics?.developerChurn || 10), 0), // Invert: lower churn = better
+    busFactor: Math.min((data.metrics?.busFactor || 0) * 1.67, 10), // 6 = 10/10
+    security: Math.max(10 - (data.metrics?.vulnerabilityCount || 0), 0), // Invert: fewer vulnerabilities = better
   };
 
   return (
@@ -110,42 +136,112 @@ export const RepoAnalysisSection: React.FC<RepoAnalysisSectionProps> = ({
 
         <Card>
           <h2 className="text-xl font-semibold mb-6">Score Breakdown</h2>
-          <RadarChart data={metrics} />
+          <RadarChart data={{
+            Activity: normalizedMetrics.commitFreq,
+            Issues: normalizedMetrics.issueResTime,
+            Reviews: normalizedMetrics.prReviewDuration,
+            Community: normalizedMetrics.contributorCount,
+            Testing: normalizedMetrics.testFolderExists,
+            Quality: normalizedMetrics.badgeCount,
+            Stability: normalizedMetrics.developerChurn,
+            Resilience: normalizedMetrics.busFactor,
+            Security: normalizedMetrics.security,
+          }} />
         </Card>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <MetricCard
-          icon={<Activity className="w-6 h-6 text-primary-600" />}
-          title="Activity Score"
-          value={metrics.activity}
-          description="Based on commit frequency and recent updates"
-        />
-        <MetricCard
-          icon={<Users className="w-6 h-6 text-accent-600" />}
-          title="Community"
-          value={metrics.community}
-          description="Contributors, stars, and engagement metrics"
-        />
-        <MetricCard
-          icon={<CheckCircle className="w-6 h-6 text-green-600" />}
-          title="Code Quality"
-          value={metrics.quality}
-          description="Documentation, tests, and code structure"
-        />
-        <MetricCard
-          icon={<Shield className="w-6 h-6 text-primary-600" />}
-          title="Trustworthiness"
-          value={metrics.trust}
-          description="License, maintainer activity, and stability"
-        />
-        <MetricCard
-          icon={<ShieldAlert className="w-6 h-6 text-orange-600" />}
-          title="Security"
-          value={metrics.security}
-          description="Vulnerability management and secure practices"
-        />
+      {/* Comprehensive Metrics Grid */}
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Detailed Metrics</h2>
+        
+        {/* Development Activity */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 text-primary-600">Development Activity</h3>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <MetricCard
+              icon={<GitCommit className="w-6 h-6 text-blue-600" />}
+              title="Commit Frequency"
+              value={formatMetric(data.metrics?.commitFreq)}
+              description="Average commits per month"
+              unit="commits/month"
+              hideProgress={true}
+            />
+            <MetricCard
+              icon={<Clock className="w-6 h-6 text-green-600" />}
+              title="Issue Resolution Time"
+              value={formatMetric(data.metrics?.issueResTime, 'days')}
+              description="Average time to resolve issues"
+              hideProgress={true}
+            />
+            <MetricCard
+              icon={<GitPullRequest className="w-6 h-6 text-purple-600" />}
+              title="PR Review Duration"
+              value={formatMetric(data.metrics?.prReviewDuration, 'days')}
+              description="Average time for PR reviews"
+              hideProgress={true}
+            />
+          </div>
+        </div>
+
+        {/* Community & Collaboration */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 text-accent-600">Community & Collaboration</h3>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <MetricCard
+              icon={<Users className="w-6 h-6 text-blue-600" />}
+              title="Contributor Count"
+              value={formatMetric(data.metrics?.contributorCount)}
+              description="Number of active contributors"
+              unit="contributors"
+              hideProgress={true}
+            />
+            <MetricCard
+              icon={<Shuffle className="w-6 h-6 text-orange-600" />}
+              title="Developer Churn"
+              value={formatMetric(data.metrics?.developerChurn, 'percentage')}
+              description="Rate of developer turnover"
+              hideProgress={true}
+            />
+            <MetricCard
+              icon={<UserX className="w-6 h-6 text-red-600" />}
+              title="Bus Factor"
+              value={formatMetric(data.metrics?.busFactor)}
+              description="Number of key contributors"
+              unit="people"
+              hideProgress={true}
+            />
+          </div>
+        </div>
+
+        {/* Quality & Security */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 text-green-600">Quality & Security</h3>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <MetricCard
+              icon={<TestTube className="w-6 h-6 text-green-600" />}
+              title="Test Coverage"
+              value={formatMetric(data.metrics?.testFolderExists, 'boolean')}
+              description="Presence of test folder/structure"
+              hideProgress={true}
+            />
+            <MetricCard
+              icon={<Award className="w-6 h-6 text-yellow-600" />}
+              title="Quality Badges"
+              value={formatMetric(data.metrics?.badgeCount)}
+              description="Number of quality/build badges"
+              unit="badges"
+              hideProgress={true}
+            />
+            <MetricCard
+              icon={<ShieldAlert className="w-6 h-6 text-red-600" />}
+              title="Security Vulnerabilities"
+              value={formatMetric(data.metrics?.vulnerabilityCount)}
+              description="Known security vulnerabilities"
+              unit="vulnerabilities"
+              hideProgress={true}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
